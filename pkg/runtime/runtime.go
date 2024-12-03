@@ -21,6 +21,8 @@ import (
 	"github.com/Jguer/aur/rpc"
 	"github.com/Jguer/votar/pkg/vote"
 	"github.com/Morganamilo/go-pacmanconf"
+
+	"golang.org/x/net/proxy"
 )
 
 type Runtime struct {
@@ -39,10 +41,20 @@ func NewRuntime(cfg *settings.Configuration, cmdArgs *parser.Arguments, version 
 	logger := text.NewLogger(os.Stdout, os.Stderr, os.Stdin, cfg.Debug, "runtime")
 	runner := exe.NewOSRunner(logger.Child("runner"))
 
+	var transport = &http.Transport{}
+	if socks5_proxy := os.Getenv("SOCKS5_PROXY"); socks5_proxy != "" {
+		dialer, err := proxy.SOCKS5("tcp", socks5_proxy, nil, proxy.Direct)
+		if err != nil {
+			return nil, err
+		}
+		transport = &http.Transport{Dial: dialer.Dial}
+	}
+
 	httpClient := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+		Transport: transport,
 	}
 
 	userAgent := fmt.Sprintf("Yay/%s", version)
