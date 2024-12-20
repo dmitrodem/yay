@@ -41,7 +41,7 @@ func NewRuntime(cfg *settings.Configuration, cmdArgs *parser.Arguments, version 
 	logger := text.NewLogger(os.Stdout, os.Stderr, os.Stdin, cfg.Debug, "runtime")
 	runner := exe.NewOSRunner(logger.Child("runner"))
 
-	var transport = &http.Transport{}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
 	if socks5_proxy := os.Getenv("SOCKS5_PROXY"); socks5_proxy != "" {
 		dialer, err := proxy.SOCKS5("tcp", socks5_proxy, nil, proxy.Direct)
 		if err != nil {

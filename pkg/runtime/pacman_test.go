@@ -5,6 +5,7 @@ package runtime
 
 import (
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/Morganamilo/go-pacmanconf"
@@ -21,13 +22,19 @@ func TestPacmanConf(t *testing.T) {
 	absPath, err := filepath.Abs(path)
 	require.NoError(t, err)
 
+	// detect the architecture of the system
+	expectedArch := []string{"x86_64"}
+	if runtime.GOARCH == "arm64" {
+		expectedArch = []string{"aarch64"}
+	}
+
 	expectedPacmanConf := &pacmanconf.Config{
 		RootDir: "/", DBPath: "/var/lib/pacman/",
 		CacheDir: []string{"/var/cache/pacman/pkg/"},
 		HookDir:  []string{"/etc/pacman.d/hooks/"},
 		GPGDir:   "/etc/pacman.d/gnupg/", LogFile: "/var/log/pacman.log",
 		HoldPkg: []string{"pacman", "glibc"}, IgnorePkg: []string{"xorm"},
-		IgnoreGroup: []string{"yorm"}, Architecture: []string{"x86_64"},
+		IgnoreGroup: []string{"yorm"}, Architecture: expectedArch,
 		XferCommand: "/usr/bin/wget --passive-ftp -c -O %o %u",
 		NoUpgrade:   []string(nil), NoExtract: []string(nil), CleanMethod: []string{"KeepInstalled"},
 		SigLevel:           []string{"PackageRequired", "PackageTrustedOnly", "DatabaseOptional", "DatabaseTrustedOnly"},
